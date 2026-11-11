@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>College Bus Route and Fare Management System</title>
+<style>
+:root{--bg:#f3f2fb;--card:#fff;--ink:#1b1b3a;--mute:#6a6a8e;--line:#e3e1f3;--navy:#1a1f5c;--pur:#6d3fd1;--pur2:#9b6bff;--ok:#1c9a6b;--bad:#d6455d;--g:linear-gradient(135deg,#1a1f5c,#6d3fd1);--sh:0 8px 24px rgba(40,30,110,.10)}
+[data-theme=dark]{--bg:#0e1030;--card:#171a47;--ink:#eeedff;--mute:#a4a3cf;--line:#2a2e66;--sh:0 8px 24px rgba(0,0,0,.4)}
+*{box-sizing:border-box;margin:0}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh;transition:background .3s,color .3s}
+button,input,select{font:inherit;color:inherit}
+#loader{position:fixed;inset:0;background:var(--g);z-index:99;display:grid;place-items:center;color:#fff;text-align:center;transition:opacity .5s}
+#loader.off{opacity:0;pointer-events:none}
+.road{width:220px;height:4px;background:rgba(255,255,255,.25);margin:14px auto 0;position:relative;overflow:hidden;border-radius:4px}
+.road:after{content:"";position:absolute;inset:0;width:40%;background:#fff;animation:go 1s infinite linear}
+@keyframes go{from{left:-40%}to{left:100%}}
+.bounce{animation:bob .8s infinite alternate ease-in-out}
+@keyframes bob{to{transform:translateY(-8px)}}
+aside{width:250px;background:var(--g);color:#fff;padding:22px 16px;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;gap:6px;z-index:20;transition:transform .3s}
+.brand{display:flex;gap:10px;align-items:center;font-weight:700;font-size:1.05rem;margin-bottom:18px}
+.brand svg{flex:none}
+aside button.nav{background:none;border:0;color:#d9d6ff;text-align:left;padding:12px 14px;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center;transition:.2s}
+aside button.nav:hover{background:rgba(255,255,255,.12)}
+aside button.nav.on{background:#fff;color:var(--navy);font-weight:700}
+.side-foot{margin-top:auto;display:grid;gap:8px}
+.ghost{background:rgba(255,255,255,.14);border:0;border-radius:12px;padding:10px;color:#fff;cursor:pointer}
+.ghost:hover{background:rgba(255,255,255,.25)}
+main{margin-left:250px;flex:1;padding:24px;min-width:0}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.burger{display:none;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+h1{font-size:1.5rem}
+.sub{color:var(--mute);font-size:.9rem}
+.hero{background:var(--g);color:#fff;border-radius:22px;padding:26px;display:flex;justify-content:space-between;align-items:center;gap:16px;overflow:hidden;box-shadow:var(--sh);margin-bottom:20px}
+.hero h2{font-size:1.4rem;margin-bottom:6px}
+.hero p{opacity:.85;max-width:420px;font-size:.92rem}
+.hero svg{max-width:300px;width:100%;flex:none}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--sh)}
+.stat b{display:block;font-size:1.7rem;margin-top:4px;color:var(--pur)}
+[data-theme=dark] .stat b{color:var(--pur2)}
+.stat span{color:var(--mute);font-size:.85rem}
+.two{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+h3{margin-bottom:12px;font-size:1.05rem}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.row:last-child{border:0}
+.pill{background:rgba(109,63,209,.14);color:var(--pur);padding:3px 10px;border-radius:99px;font-size:.78rem;font-weight:700;white-space:nowrap}
+[data-theme=dark] .pill{color:var(--pur2)}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--g);border-radius:6px;transition:width .6s}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.tools input,.tools select,.form input,.form select{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 14px;min-width:0;outline:none}
+.tools input{flex:1;min-width:200px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--pur2);outline-offset:1px}
+.btn{background:var(--g);color:#fff;border:0;border-radius:12px;padding:11px 18px;cursor:pointer;font-weight:700;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(109,63,209,.4)}
+.btn.sm{padding:6px 12px;font-size:.82rem}
+.btn.red{background:var(--bad)}
+.btn.out{background:none;color:var(--pur);border:1px solid var(--pur)}
+.routes{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.rc{cursor:pointer;transition:transform .2s,box-shadow .2s}
+.rc:hover{transform:translateY(-4px)}
+.rc header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.rc .stops{max-height:0;overflow:hidden;transition:max-height .4s}
+.rc.open .stops{max-height:600px}
+.hint{font-size:.78rem;color:var(--mute);margin-top:6px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mute);font-weight:600;font-size:.82rem}
+.form{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));align-items:end}
+.form label{font-size:.82rem;color:var(--mute);display:grid;gap:5px}
+.form input,.form select{width:100%}
+.empty{text-align:center;color:var(--mute);padding:28px}
+mark{background:rgba(155,107,255,.35);color:inherit;border-radius:3px}
+section.view{display:none}
+section.view.on{display:block;animation:fi .35s}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}}
+#toasts{position:fixed;right:18px;bottom:18px;display:grid;gap:10px;z-index:90}
+.toast{background:var(--card);border-left:5px solid var(--ok);padding:12px 16px;border-radius:12px;box-shadow:var(--sh);animation:fi .3s;max-width:300px;font-size:.9rem}
+.toast.err{border-color:var(--bad)}
+#modal{position:fixed;inset:0;background:rgba(10,10,40,.6);display:none;place-items:center;z-index:95;padding:16px}
+#modal.on{display:grid}
+#modal .card{max-width:380px;width:100%}
+.acts{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+footer{color:var(--mute);font-size:.8rem;text-align:center;margin-top:28px}
+@media(max-width:860px){aside{transform:translateX(-100%)}aside.open{transform:none}main{margin-left:0;padding:16px}.burger{display:block}.two{grid-template-columns:1fr}.hero svg{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div><svg class="bounce" width="120" height="70" viewBox="0 0 120 70"><rect x="6" y="8" width="100" height="42" rx="10" fill="#fff"/><rect x="14" y="16" width="20" height="16" rx="3" fill="#6d3fd1"/><rect x="40" y="16" width="20" height="16" rx="3" fill="#6d3fd1"/><rect x="66" y="16" width="20" height="16" rx="3" fill="#6d3fd1"/><rect x="92" y="16" width="12" height="26" rx="3" fill="#9b6bff"/><circle cx="30" cy="54" r="9" fill="#1a1f5c" stroke="#fff" stroke-width="3"/><circle cx="82" cy="54" r="9" fill="#1a1f5c" stroke="#fff" stroke-width="3"/></svg><h2>Loading transport records</h2><div class="road"></div></div></div>
+
+<aside id="side">
+  <div class="brand"><svg width="36" height="26" viewBox="0 0 120 70"><rect x="6" y="8" width="100" height="42" rx="10" fill="#fff"/><rect x="14" y="16" width="20" height="16" rx="3" fill="#6d3fd1"/><rect x="40" y="16" width="20" height="16" rx="3" fill="#6d3fd1"/><rect x="66" y="16" width="20" height="16" rx="3" fill="#6d3fd1"/><circle cx="30" cy="54" r="9" fill="#9b6bff"/><circle cx="82" cy="54" r="9" fill="#9b6bff"/></svg>College Bus Route &amp; Fare</div>
+  <button class="nav on" data-v="dash">📊 Dashboard</button>
+  <button class="nav" data-v="routes">🚌 Bus Routes</button>
+  <button class="nav" data-v="search">🔍 Smart Search</button>
+  <button class="nav" data-v="fares">💰 Fare Management</button>
+  <button class="nav" data-v="compare">📈 Fare Comparison</button>
+  <div class="side-foot">
+    <button class="ghost" id="theme">🌙 Dark mode</button>
+    <button class="ghost" id="reset">↺ Reset sample data</button>
+    <div class="sub" style="color:#c9c5ff;font-size:.75rem">Meera Maideen M<br>814725104090 · CS25C09</div>
+  </div>
+</aside>
+
+<main>
+  <div class="top"><button class="burger" id="burger" aria-label="Menu">☰</button><div><h1 id="title">Dashboard</h1><div class="sub">SRM TRP Engineering College, Tiruchirappalli</div></div></div>
+
+  <section class="view on" id="dash">
+    <div class="hero"><div><h2>College Bus Route and Fare Management System</h2><p>View routes, search boarding points and keep annual transport fares up to date, all in one place.</p></div>
+      <svg viewBox="0 0 300 130"><rect y="108" width="300" height="6" rx="3" fill="rgba(255,255,255,.3)"/><rect x="20" y="30" width="220" height="68" rx="16" fill="#fff"/><rect x="34" y="42" width="38" height="28" rx="5" fill="#6d3fd1"/><rect x="82" y="42" width="38" height="28" rx="5" fill="#6d3fd1"/><rect x="130" y="42" width="38" height="28" rx="5" fill="#6d3fd1"/><rect x="180" y="42" width="48" height="50" rx="5" fill="#9b6bff"/><rect x="34" y="78" width="130" height="8" rx="4" fill="#1a1f5c" opacity=".2"/><circle cx="70" cy="100" r="15" fill="#1a1f5c" stroke="#fff" stroke-width="4"/><circle cx="190" cy="100" r="15" fill="#1a1f5c" stroke="#fff" stroke-width="4"/><path d="M255 40v68M255 40h30l-8 10 8 10h-30" fill="none" stroke="#fff" stroke-width="3"/></svg></div>
+    <div class="grid" id="stats"></div>
+    <div class="two">
+      <div class="card"><h3>Popular routes</h3><div id="popular"></div></div>
+      <div class="card"><h3>Recent route information</h3><div id="recent"></div></div>
+    </div>
+  </section>
+
+  <section class="view" id="routes">
+    <div class="tools"><select id="rfilter"></select><span class="sub" style="align-self:center">Select a route card to show its boarding points.</span></div>
+    <div class="routes" id="rlist"></div>
+  </section>
+
+  <section class="view" id="search">
+    <div class="tools"><input id="q" placeholder="Search boarding point, e.g. “sri” or “nagar”" autocomplete="off"><select id="sroute"></select><select id="sort"><option value="name">Sort by name</option><option value="low">Fare: low to high</option><option value="high">Fare: high to low</option></select></div>
+    <div class="card tablewrap"><table><thead><tr><th>Route</th><th>Boarding point</th><th>Annual fee</th></tr></thead><tbody id="sres"></tbody></table></div>
+  </section>
+
+  <section class="view" id="fares">
+    <div class="card" style="margin-bottom:16px"><h3 id="ftitle">Add a boarding point</h3>
+      <div class="form">
+        <label>Route name<input id="fr" list="rl" placeholder="e.g. Route 4 - Thuraiyur"><datalist id="rl"></datalist></label>
+        <label>Boarding point<input id="fs" placeholder="e.g. Thuraiyur"></label>
+        <label>Annual fee (Rs.)<input id="ff" type="number" min="1" placeholder="e.g. 31000"></label>
+        <div style="display:flex;gap:8px"><button class="btn" id="fsave">Add point</button><button class="btn out" id="fcancel" style="display:none">Cancel</button></div>
+      </div></div>
+    <div class="card tablewrap"><h3>All boarding points</h3><table><thead><tr><th>Route</th><th>Boarding point</th><th>Annual fee</th><th>Actions</th></tr></thead><tbody id="ftable"></tbody></table></div>
+  </section>
+
+  <section class="view" id="compare">
+    <div class="card"><h3>Route-wise fare comparison</h3><div id="cmp"></div></div>
+    <div class="card" style="margin-top:16px"><h3>Boarding points ranked by fee</h3><div id="rank"></div></div>
+  </section>
+  <footer>Academic prototype using sample data · Java Programming Mini Project</footer>
+</main>
+
+<div id="toasts"></div>
+<div id="modal"><div class="card"><h3 id="mt"></h3><p class="sub" id="mp"></p><div class="acts"><button class="btn out" id="mno">Cancel</button><button class="btn red" id="myes">Confirm</button></div></div></div>
+
+<script>
+(function(){
+"use strict";
+var KEY="cbrfms.v1";
+var SAMPLE=[
+["Route 1 - Trichy Central","Central Bus Stand",18000],["Route 1 - Trichy Central","Thillai Nagar",19500],["Route 1 - Trichy Central","Woraiyur",21000],
+["Route 2 - Srirangam","Srirangam",22000],["Route 2 - Srirangam","Thiruvanaikaval",23000],["Route 2 - Srirangam","Kallanai Road",24500],
+["Route 3 - Lalgudi","Samayapuram",25000],["Route 3 - Lalgudi","Manachanallur",27000],["Route 3 - Lalgudi","Lalgudi",29000]
+];
+var data=[],recent=[],editId=null,views={};
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function money(n){return "Rs. "+Number(n).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function seed(){data=SAMPLE.map(function(r,i){return{id:i+1,route:r[0],stop:r[1],fee:r[2]}});recent=[];}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({data:data,recent:recent}))}catch(e){}}
+function load(){try{var d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.data)&&d.data.length){data=d.data;recent=d.recent||[];return}}catch(e){}seed()}
+function nextId(){return data.reduce(function(m,x){return Math.max(m,x.id)},0)+1}
+function routes(){var m={};data.forEach(function(x){(m[x.route]=m[x.route]||[]).push(x)});return m}
+function toast(msg,err){var t=document.createElement("div");t.className="toast"+(err?" err":"");t.textContent=msg;$("toasts").appendChild(t);setTimeout(function(){t.remove()},3200)}
+function confirmBox(t,p,fn){$("mt").textContent=t;$("mp").textContent=p;$("modal").classList.add("on");$("myes").onclick=function(){$("modal").classList.remove("on");fn()}}
+$("mno").onclick=function(){$("modal").classList.remove("on")};
+function log(t){recent.unshift({t:t,at:new Date().toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})});recent=recent.slice(0,6)}
+
+function dash(){
+  var n=data.length,r=routes(),rc=Object.keys(r).length;
+  var sum=data.reduce(function(a,x){return a+x.fee},0),avg=n?sum/n:0;
+  var low=n?data.reduce(function(a,x){return x.fee<a.fee?x:a},data[0]):null;
+  var cards=[["Total bus routes",rc],["Boarding points",n],["Average annual fare",n?money(avg):"–"],["Lowest annual fare",low?money(low.fee):"–"]];
+  $("stats").innerHTML=cards.map(function(c){return '<div class="card stat"><span>'+c[0]+'</span><b>'+c[1]+'</b></div>'}).join("");
+  var pop=Object.keys(r).map(function(k){return{k:k,c:r[k].length,a:r[k].reduce(function(s,x){return s+x.fee},0)/r[k].length}}).sort(function(a,b){return b.c-a.c||a.a-b.a}).slice(0,4);
+  var mx=Math.max.apply(null,pop.map(function(p){return p.c}).concat([1]));
+  $("popular").innerHTML=pop.map(function(p){return '<div class="row" style="display:block"><div style="display:flex;justify-content:space-between"><span>'+esc(p.k)+'</span><span class="pill">'+p.c+' stops</span></div><div class="bar"><i style="width:'+(p.c/mx*100)+'%"></i></div></div>'}).join("")||'<div class="empty">No routes yet.</div>';
+  var rec=recent.length?recent.map(function(x){return '<div class="row"><span>'+esc(x.t)+'</span><span class="sub">'+esc(x.at)+'</span></div>'}):Object.keys(r).map(function(k){return '<div class="row"><span>'+esc(k)+'</span><span class="pill">'+r[k].length+' stops</span></div>'});
+  $("recent").innerHTML=rec.join("")||'<div class="empty">Nothing to show.</div>';
+}
+function fillRoutes(){
+  var names=Object.keys(routes());
+  ["rfilter","sroute"].forEach(function(id){var el=$(id),v=el.value;el.innerHTML='<option value="">All routes</option>'+names.map(function(x){return '<option>'+esc(x)+'</option>'}).join("");if(names.indexOf(v)>-1)el.value=v});
+  $("rl").innerHTML=names.map(function(x){return '<option value="'+esc(x)+'">'}).join("");
+}
+var openRoutes={};
+function renderRoutes(){
+  var r=routes(),f=$("rfilter").value,keys=Object.keys(r).filter(function(k){return!f||k===f});
+  $("rlist").innerHTML=keys.map(function(k){
+    var s=r[k],avg=s.reduce(function(a,x){return a+x.fee},0)/s.length;
+    return '<div class="card rc'+(openRoutes[k]?' open':'')+'" data-r="'+esc(k)+'"><header><h3 style="margin:0">'+esc(k)+'</h3><span class="pill">'+s.length+' stops</span></header><div class="sub">Average fare '+money(avg)+'</div><div class="hint">Tap to view boarding points</div><div class="stops">'+s.map(function(x){return '<div class="row"><span>📍 '+esc(x.stop)+'</span><b>'+money(x.fee)+'</b></div>'}).join("")+'</div></div>'}).join("")||'<div class="empty card">No routes available. Add one in Fare Management.</div>';
+}
+$("rlist").onclick=function(e){var c=e.target.closest(".rc");if(!c)return;var k=c.getAttribute("data-r");openRoutes[k]=!openRoutes[k];c.classList.toggle("open")};
+function hl(s,q){var e=esc(s);if(!q)return e;var i=s.toLowerCase().indexOf(q.toLowerCase());if(i<0)return e;return esc(s.slice(0,i))+"<mark>"+esc(s.slice(i,i+q.length))+"</mark>"+esc(s.slice(i+q.length))}
+function renderSearch(){
+  var q=$("q").value.trim(),rt=$("sroute").value,o=$("sort").value;
+  var res=data.filter(function(x){return(!q||x.stop.toLowerCase().indexOf(q.toLowerCase())>-1)&&(!rt||x.route===rt)});
+  res.sort(function(a,b){return o==="low"?a.fee-b.fee:o==="high"?b.fee-a.fee:a.stop.localeCompare(b.stop)});
+  $("sres").innerHTML=res.map(function(x){return '<tr><td>'+esc(x.route)+'</td><td>'+hl(x.stop,q)+'</td><td><b>'+money(x.fee)+'</b></td></tr>'}).join("")||'<tr><td colspan="3" class="empty">No matching boarding stop was found.</td></tr>';
+}
+function renderFares(){
+  $("ftable").innerHTML=data.map(function(x){return '<tr><td>'+esc(x.route)+'</td><td>'+esc(x.stop)+'</td><td><b>'+money(x.fee)+'</b></td><td><button class="btn sm" data-e="'+x.id+'">Update fee</button> <button class="btn sm red" data-d="'+x.id+'">Delete</button></td></tr>'}).join("")||'<tr><td colspan="4" class="empty">No boarding points. Add one above or reset the sample data.</td></tr>';
+}
+$("ftable").onclick=function(e){
+  var b=e.target.closest("button");if(!b)return;
+  var id=+(b.getAttribute("data-e")||b.getAttribute("data-d")),x=data.filter(function(d){return d.id===id})[0];if(!x)return;
+  if(b.hasAttribute("data-e")){editId=id;$("fr").value=x.route;$("fs").value=x.stop;$("ff").value=x.fee;$("fr").disabled=$("fs").disabled=true;$("ftitle").textContent="Update annual fee";$("fsave").textContent="Save fee";$("fcancel").style.display="";$("ff").focus();window.scrollTo({top:0,behavior:"smooth"})}
+  else confirmBox("Delete boarding point?",x.stop+" ("+x.route+") will be removed.",function(){data=data.filter(function(d){return d.id!==id});log("Deleted "+x.stop);save();refresh();toast("Deleted "+x.stop+".")});
+};
+function clearForm(){editId=null;$("fr").value=$("fs").value=$("ff").value="";$("fr").disabled=$("fs").disabled=false;$("ftitle").textContent="Add a boarding point";$("fsave").textContent="Add point";$("fcancel").style.display="none"}
+$("fcancel").onclick=clearForm;
+$("fsave").onclick=function(){
+  var rt=$("fr").value.trim(),st=$("fs").value.trim(),fee=parseFloat($("ff").value);
+  if(!rt||!st){return toast("Enter both the route name and the boarding point.",true)}
+  if(!isFinite(fee)||fee<=0){return toast("Enter a positive numeric fee.",true)}
+  if(editId!==null){var x=data.filter(function(d){return d.id===editId})[0];x.fee=fee;log("Updated "+x.stop+" to "+money(fee));toast("Fee updated successfully.")}
+  else{
+    var dup=data.some(function(d){return d.route.toLowerCase()===rt.toLowerCase()&&d.stop.toLowerCase()===st.toLowerCase()});
+    if(dup)return toast("That boarding point already exists on this route.",true);
+    var ex=data.filter(function(d){return d.route.toLowerCase()===rt.toLowerCase()})[0];
+    data.push({id:nextId(),route:ex?ex.route:rt,stop:st,fee:fee});log("Added "+st+" to "+(ex?ex.route:rt));toast("Route / stop added successfully.");
+  }
+  save();clearForm();refresh();
+};
+function renderCompare(){
+  var r=routes(),ks=Object.keys(r);
+  var rows=ks.map(function(k){var s=r[k].map(function(x){return x.fee});return{k:k,avg:s.reduce(function(a,b){return a+b},0)/s.length,min:Math.min.apply(null,s),max:Math.max.apply(null,s)}});
+  var mx=Math.max.apply(null,rows.map(function(x){return x.max}).concat([1]));
+  $("cmp").innerHTML=rows.map(function(x){return '<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><b>'+esc(x.k)+'</b><span class="sub">Min '+money(x.min)+' · Avg '+money(x.avg)+' · Max '+money(x.max)+'</span></div><div class="bar"><i style="width:'+(x.avg/mx*100)+'%"></i></div></div>'}).join("")||'<div class="empty">No data to compare.</div>';
+  var sorted=data.slice().sort(function(a,b){return a.fee-b.fee});
+  $("rank").innerHTML=sorted.map(function(x){return '<div class="row" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px"><span>'+esc(x.stop)+' <span class="sub">'+esc(x.route)+'</span></span><b>'+money(x.fee)+'</b></div><div class="bar"><i style="width:'+(x.fee/mx*100)+'%"></i></div></div>'}).join("")||'<div class="empty">No data to compare.</div>';
+}
+function refresh(){fillRoutes();dash();renderRoutes();renderSearch();renderFares();renderCompare()}
+
+var titles={dash:"Dashboard",routes:"Bus Routes",search:"Smart Search",fares:"Fare Management",compare:"Fare Comparison"};
+function go(v){
+  document.querySelectorAll("section.view").forEach(function(s){s.classList.toggle("on",s.id===v)});
+  document.querySelectorAll("button.nav").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-v")===v)});
+  $("title").textContent=titles[v];$("side").classList.remove("open");window.scrollTo(0,0);
+}
+document.querySelectorAll("button.nav").forEach(function(b){b.onclick=function(){go(b.getAttribute("data-v"))}});
+$("burger").onclick=function(){$("side").classList.toggle("open")};
+$("rfilter").onchange=renderRoutes;
+["q","sroute","sort"].forEach(function(id){$(id).oninput=renderSearch;$(id).onchange=renderSearch});
+$("reset").onclick=function(){confirmBox("Reset sample data?","All changes will be replaced with the original 3 routes and 9 boarding points.",function(){seed();openRoutes={};save();clearForm();refresh();toast("Sample data restored.")})};
+function theme(t){document.documentElement.setAttribute("data-theme",t);$("theme").textContent=t==="dark"?"☀️ Light mode":"🌙 Dark mode";try{localStorage.setItem("cbrfms.theme",t)}catch(e){}}
+$("theme").onclick=function(){theme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark")};
+var t0="light";try{t0=localStorage.getItem("cbrfms.theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}
+theme(t0);load();refresh();
+setTimeout(function(){$("loader").classList.add("off")},1200);
+})();
+</script>
+</body>
+</html>
